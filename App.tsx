@@ -161,7 +161,7 @@ const App: React.FC = () => {
 
   const handleImportData = () => {
     try {
-      const data = JSON.parse(importText);
+      const data = JSON.parse(importText.replace('Backup OrdersFlow:\n\n', ''));
       if (data.products && Array.isArray(data.products) && data.orders && Array.isArray(data.orders)) {
         setProducts(data.products);
         setOrders(data.orders);
@@ -478,18 +478,18 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
   const [items, setItems] = useState<OrderItem[]>(initialData?.items || []);
   
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState('');
 
   const addItem = () => {
     if (!selectedProduct) return;
     const existing = items.find(i => i.productId === selectedProduct);
     if (existing) {
-      setItems(prev => prev.map(i => i.productId === selectedProduct ? { ...i, quantity: i.quantity + quantity } : i));
+      setItems(prev => prev.map(i => i.productId === selectedProduct ? { ...i, quantity: Number(i.quantity) + Number(quantity) } : i));
     } else {
       setItems(prev => [...prev, { productId: selectedProduct, quantity }]);
     }
     setSelectedProduct('');
-    setQuantity(1);
+    setQuantity('');
   };
 
   const removeItem = (id: string) => {
@@ -536,9 +536,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
             </select>
             <input
               type="number"
-              min="1"
               value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              onChange={(e) => setQuantity(e.target.value)}
               className="w-20 px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none"
             />
             <button 
