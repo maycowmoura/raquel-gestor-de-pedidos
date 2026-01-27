@@ -24,7 +24,7 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<Tab>(Tab.Orders);
   const [toasts, setToasts] = useState<ToastType[]>([]);
-  
+
   // Modals state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -179,13 +179,13 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
       <Toast toasts={toasts} removeToast={removeToast} />
-      
+
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40 px-4 py-4 md:px-8 shadow-sm">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">OrdersFlow</h1>
-            <button 
+            <button
               onClick={() => setIsBackupModalOpen(true)}
               className="ml-4 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
               title="Backup / Sincronizar"
@@ -193,21 +193,19 @@ const App: React.FC = () => {
               <ShareIcon />
             </button>
           </div>
-          
+
           <nav className="flex bg-gray-100 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab(Tab.Orders)}
-              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === Tab.Orders ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Orders ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               Pedidos
             </button>
             <button
               onClick={() => setActiveTab(Tab.Products)}
-              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === Tab.Products ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Products ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               Produtos
             </button>
@@ -220,7 +218,7 @@ const App: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800">Catálogo de Produtos</h2>
-              <button 
+              <button
                 onClick={() => setIsProductModalOpen(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
               >
@@ -236,14 +234,14 @@ const App: React.FC = () => {
                   <div key={product.id} className="bg-white border rounded-xl p-5 flex justify-between items-center group hover:border-indigo-200 hover:shadow-md transition-all">
                     <span className="font-semibold text-gray-700 text-lg">{product.name}</span>
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => { setEditingProduct(product); setIsProductModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                         title="Editar"
                       >
                         <EditIcon />
                       </button>
-                      <button 
+                      <button
                         onClick={() => deleteProduct(product.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Excluir"
@@ -260,7 +258,7 @@ const App: React.FC = () => {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <h2 className="text-xl font-bold text-gray-800">Gerenciamento de Pedidos</h2>
-              <button 
+              <button
                 onClick={() => setIsOrderModalOpen(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
@@ -325,13 +323,13 @@ const App: React.FC = () => {
                         </p>
                       </div>
                       <div className="flex gap-1">
-                        <button 
+                        <button
                           onClick={() => { setEditingOrder(order); setIsOrderModalOpen(true); }}
                           className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                         >
                           <EditIcon />
                         </button>
-                        <button 
+                        <button
                           onClick={() => deleteOrder(order.id)}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
@@ -374,7 +372,7 @@ const App: React.FC = () => {
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-gray-900">Exportar para WhatsApp</h4>
             <p className="text-xs text-gray-500">Gere um backup completo dos seus produtos e pedidos e envie para seu próprio WhatsApp.</p>
-            <button 
+            <button
               onClick={handleExportWhatsApp}
               className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl font-semibold transition-colors shadow-sm"
             >
@@ -391,7 +389,7 @@ const App: React.FC = () => {
               placeholder='Cole o JSON aqui...'
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] text-xs font-mono"
             />
-            <button 
+            <button
               onClick={handleImportData}
               disabled={!importText.trim()}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white py-2.5 rounded-xl font-semibold transition-colors shadow-sm"
@@ -404,16 +402,16 @@ const App: React.FC = () => {
 
       {/* Product Modal */}
       <Modal isOpen={isProductModalOpen} onClose={closeProductModal} title={editingProduct ? 'Editar Produto' : 'Novo Produto'}>
-        <ProductForm 
-          initialValue={editingProduct?.name || ''} 
-          onSave={saveProduct} 
-          onCancel={closeProductModal} 
+        <ProductForm
+          initialValue={editingProduct?.name || ''}
+          onSave={saveProduct}
+          onCancel={closeProductModal}
         />
       </Modal>
 
       {/* Order Modal */}
       <Modal isOpen={isOrderModalOpen} onClose={closeOrderModal} title={editingOrder ? 'Editar Pedido' : 'Novo Pedido'}>
-        <OrderForm 
+        <OrderForm
           products={products}
           initialData={editingOrder || undefined}
           onSave={saveOrder}
@@ -476,17 +474,22 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
   const [deliveryDate, setDeliveryDate] = useState(initialData?.deliveryDate || '');
   const [observations, setObservations] = useState(initialData?.observations || '');
   const [items, setItems] = useState<OrderItem[]>(initialData?.items || []);
-  
+
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
 
   const addItem = () => {
+    const numQty = Number(quantity);
     if (!selectedProduct) return;
+    if (!quantity || isNaN(numQty) || numQty <= 0) {
+      return;
+    }
+
     const existing = items.find(i => i.productId === selectedProduct);
     if (existing) {
-      setItems(prev => prev.map(i => i.productId === selectedProduct ? { ...i, quantity: Number(i.quantity) + Number(quantity) } : i));
+      setItems(prev => prev.map(i => i.productId === selectedProduct ? { ...i, quantity: Number(i.quantity) + numQty } : i));
     } else {
-      setItems(prev => [...prev, { productId: selectedProduct, quantity }]);
+      setItems(prev => [...prev, { productId: selectedProduct, quantity: numQty }]);
     }
     setSelectedProduct('');
     setQuantity('');
@@ -527,7 +530,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
             <select
               value={selectedProduct}
               onChange={(e) => setSelectedProduct(e.target.value)}
-              className="flex-1 px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none"
+              className="flex-1 min-w-0 px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none"
             >
               <option value="">Selecione...</option>
               {products.map(p => (
@@ -535,12 +538,17 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
               ))}
             </select>
             <input
-              type="number"
+              type="tel"
+              inputMode="numeric"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className="w-20 px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none"
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                setQuantity(val);
+              }}
+              placeholder="Qtd"
+              className="w-16 px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none text-center"
             />
-            <button 
+            <button
               onClick={addItem}
               className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors"
             >
@@ -579,8 +587,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
 
       <div className="flex gap-3 pt-2">
         <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-colors">Cancelar</button>
-        <button 
-          onClick={() => onSave({ customerName, deliveryDate, items, observations })} 
+        <button
+          onClick={() => onSave({ customerName, deliveryDate, items, observations })}
           className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition-colors"
         >
           Salvar Pedido
