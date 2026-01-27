@@ -25,7 +25,11 @@ const ToastItem: React.FC<{ toast: ToastType; onRemove: (id: string) => void }> 
     return () => clearTimeout(timer);
   }, [toast.id, onRemove]);
 
-  const bgColor = toast.type === 'success' ? 'bg-emerald-500' : 'bg-red-500';
+  const bgColor = toast.type === 'success'
+    ? 'bg-emerald-500'
+    : toast.type === 'error'
+      ? 'bg-red-500'
+      : 'bg-blue-500';
 
   return (
     <div className={`${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center justify-between animate-in slide-in-from-top duration-300`}>

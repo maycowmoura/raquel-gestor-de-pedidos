@@ -63,13 +63,14 @@ const App: React.FC = () => {
 
     if (isLocalEmpty && GOOGLE_SCRIPT_URL) {
       loading.current = true;
+      addToast('Carregando dados da Planilha Google...', 'info');
       fetch(GOOGLE_SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
           if (data && (data.products || data.orders)) {
             if (data.products) setProducts(data.products);
             if (data.orders) setOrders(data.orders);
-            addToast('Dados recuperados da nuvem');
+            addToast('Dados recuperados da Planilha Google!', 'success');
           }
         })
         .catch(err => {
@@ -249,6 +250,14 @@ const App: React.FC = () => {
         console.error('Erro ao copiar dados:', err);
         addToast('Erro ao copiar dados', 'error');
       }
+    }
+  };
+
+  const handleClearLocalData = () => {
+    if (window.confirm('Isso apagará os dados deste dispositivo e tentará recarregar da planilha Google. Deseja continuar?')) {
+      localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+      localStorage.removeItem(STORAGE_KEYS.ORDERS);
+      window.location.reload();
     }
   };
 
@@ -489,6 +498,17 @@ const App: React.FC = () => {
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white py-2.5 rounded-xl font-semibold transition-colors shadow-sm"
             >
               <ImportIcon /> Importar Dados
+            </button>
+          </div>
+
+          <div className="border-t pt-4 space-y-3">
+            <h4 className="text-sm font-bold text-red-600">Sincronização / Limpeza</h4>
+            <p className="text-xs text-gray-500">Seus dados locais parecem desatualizados? Use este botão para limpar o cache deste aparelho e baixar a versão mais recente da sua Planilha Google. <br />Recomendo que antes, use o botão "Exportar" acima para salvar os dados locais.</p>
+            <button
+              onClick={handleClearLocalData}
+              className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 py-2.5 rounded-xl font-semibold transition-colors border border-red-200"
+            >
+              <TrashIcon /> Limpar e Recarregar da Nuvem
             </button>
           </div>
         </div>
