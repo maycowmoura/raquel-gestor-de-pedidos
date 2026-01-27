@@ -223,12 +223,33 @@ const App: React.FC = () => {
   };
 
   // Export/Import
-  const handleExportWhatsApp = () => {
+  const handleExportData = async () => {
     const data = { products, orders };
     const json = JSON.stringify(data);
     const text = `Backup OrdersFlow:\n\n${json}`;
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Backup OrdersFlow',
+          text: text
+        });
+        addToast('Compartilhamento aberto!');
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          addToast('Erro ao compartilhar', 'error');
+        }
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(text);
+        addToast('Dados copiados para a área de transferência!');
+      } catch (err) {
+        console.error('Erro ao copiar dados:', err);
+        addToast('Erro ao copiar dados', 'error');
+      }
+    }
   };
 
   const handleImportData = () => {
@@ -443,13 +464,13 @@ const App: React.FC = () => {
       <Modal isOpen={isBackupModalOpen} onClose={() => setIsBackupModalOpen(false)} title="Exportar / Importar Dados">
         <div className="space-y-6">
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-gray-900">Exportar para WhatsApp</h4>
-            <p className="text-xs text-gray-500">Gere um backup completo dos seus produtos e pedidos e envie para seu próprio WhatsApp.</p>
+            <h4 className="text-sm font-bold text-gray-900">Exportar Dados</h4>
+            <p className="text-xs text-gray-500">Gere um backup completo dos seus produtos e pedidos para salvar ou enviar.</p>
             <button
-              onClick={handleExportWhatsApp}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl font-semibold transition-colors shadow-sm"
+              onClick={handleExportData}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-semibold transition-colors shadow-sm"
             >
-              <ShareIcon /> Exportar via WhatsApp
+              <ShareIcon /> Exportar / Compartilhar
             </button>
           </div>
 
