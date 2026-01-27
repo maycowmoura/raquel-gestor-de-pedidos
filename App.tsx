@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Product, Order, OrderItem, Tab, Toast as ToastType, ToastType as TType } from './types';
 import { PlusIcon, EditIcon, TrashIcon, SearchIcon, CalendarIcon, ShareIcon, ImportIcon } from './components/Icons';
 import Modal from './components/Modal';
@@ -9,6 +9,8 @@ const STORAGE_KEYS = {
   PRODUCTS: 'ordersflow_products',
   ORDERS: 'ordersflow_orders'
 };
+
+const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 
 const App: React.FC = () => {
   // Initialize state from localStorage
@@ -32,12 +34,13 @@ const App: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [importText, setImportText] = useState('');
+  const loading = useRef(false);
 
   // Filters state
   const [productFilter, setProductFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
-  // Sync state to localStorage
+  // Sync state to localStorage only
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
   }, [products]);
@@ -45,6 +48,63 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
   }, [orders]);
+
+  // Initial load from Google Sheets if local is empty
+  useEffect(() => {
+    if (loading.current) return;
+
+    const localProductsString = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    const localOrdersString = localStorage.getItem(STORAGE_KEYS.ORDERS);
+
+    const localProducts = localProductsString ? JSON.parse(localProductsString) : [];
+    const localOrders = localOrdersString ? JSON.parse(localOrdersString) : [];
+
+    const isLocalEmpty = localProducts.length === 0 && localOrders.length === 0;
+
+    if (isLocalEmpty && GOOGLE_SCRIPT_URL) {
+      loading.current = true;
+      fetch(GOOGLE_SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+          if (data && (data.products || data.orders)) {
+            if (data.products) setProducts(data.products);
+            if (data.orders) setOrders(data.orders);
+            addToast('Dados recuperados da nuvem');
+          }
+        })
+        .catch(err => {
+          console.error('Erro ao buscar dados iniciais:', err);
+          loading.current = false; // Allow retry on error if needed
+        })
+        .finally(() => {
+          // Keep loading true to prevent re-fetching in dev double-mount
+          // but we set it false in catch to allow retry
+        });
+    }
+  }, []);
+
+  const syncToGoogleSheets = async (currentProducts = products, currentOrders = orders) => {
+    if (!GOOGLE_SCRIPT_URL) return;
+
+    try {
+      const data = {
+        products: currentProducts,
+        orders: currentOrders
+      };
+
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Google Apps Script requires no-cors for simple POSTs from browser
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.error('Erro ao sincronizar com Google Sheets:', error);
+    }
+  };
 
   // Toast Helpers
   const addToast = useCallback((message: string, type: TType = 'success') => {
@@ -89,11 +149,15 @@ const App: React.FC = () => {
     }
 
     if (editingProduct) {
-      setProducts(prev => prev.map(p => p.id === editingProduct.id ? { ...p, name } : p));
+      const updated = products.map(p => p.id === editingProduct.id ? { ...p, name } : p);
+      setProducts(updated);
+      syncToGoogleSheets(updated, orders);
       addToast('Produto atualizado com sucesso!');
     } else {
       const newProduct: Product = { id: Date.now().toString(), name };
-      setProducts(prev => [...prev, newProduct]);
+      const updated = [...products, newProduct];
+      setProducts(updated);
+      syncToGoogleSheets(updated, orders);
       addToast('Produto adicionado com sucesso!');
     }
     closeProductModal();
@@ -105,7 +169,9 @@ const App: React.FC = () => {
       addToast('Não é possível excluir um produto usado em pedidos ativos', 'error');
       return;
     }
-    setProducts(prev => prev.filter(p => p.id !== id));
+    const updated = products.filter(p => p.id !== id);
+    setProducts(updated);
+    syncToGoogleSheets(updated, orders);
     addToast('Produto removido com sucesso!');
   };
 
@@ -130,18 +196,24 @@ const App: React.FC = () => {
     }
 
     if (editingOrder) {
-      setOrders(prev => prev.map(o => o.id === editingOrder.id ? { ...orderData, id: editingOrder.id } : o));
+      const updated = orders.map(o => o.id === editingOrder.id ? { ...orderData, id: editingOrder.id } : o);
+      setOrders(updated);
+      syncToGoogleSheets(products, updated);
       addToast('Pedido atualizado com sucesso!');
     } else {
       const newOrder: Order = { ...orderData, id: Date.now().toString() };
-      setOrders(prev => [...prev, newOrder]);
+      const updated = [...orders, newOrder];
+      setOrders(updated);
+      syncToGoogleSheets(products, updated);
       addToast('Pedido criado com sucesso!');
     }
     closeOrderModal();
   };
 
   const deleteOrder = (id: string) => {
-    setOrders(prev => prev.filter(o => o.id !== id));
+    const updated = orders.filter(o => o.id !== id);
+    setOrders(updated);
+    syncToGoogleSheets(products, updated);
     addToast('Pedido removido com sucesso!');
   };
 
@@ -161,10 +233,11 @@ const App: React.FC = () => {
 
   const handleImportData = () => {
     try {
-      const data = JSON.parse(importText.replace('Backup OrdersFlow:\n\n', ''));
+      const data = JSON.parse(importText.replace('Backup OrdersFlow:', '').trim());
       if (data.products && Array.isArray(data.products) && data.orders && Array.isArray(data.orders)) {
         setProducts(data.products);
         setOrders(data.orders);
+        syncToGoogleSheets(data.products, data.orders);
         addToast('Dados importados com sucesso!');
         setIsBackupModalOpen(false);
         setImportText('');
