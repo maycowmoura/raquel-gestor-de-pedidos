@@ -74,37 +74,49 @@ function doGet(e) {
 
     // Read Products
     if (sheetProducts && sheetProducts.getLastRow() > 1) {
-      const prodValues = sheetProducts.getRange(2, 1, sheetProducts.getLastRow() - 1, 2).getValues();
+      // Columns: ID (A), Name (B)
+      const dataRange = sheetProducts.getRange(2, 1, sheetProducts.getLastRow() - 1, 2);
+      const prodValues = dataRange.getValues();
       prodValues.forEach(row => {
-        products.push({ id: String(row[0]), name: String(row[1]) });
+        // Only add if ID exists
+        if (row[0]) {
+          products.push({ id: String(row[0]), name: String(row[1]) });
+        }
       });
     }
 
     // Read Orders
     if (sheetOrders && sheetOrders.getLastRow() > 1) {
-      const orderValues = sheetOrders.getRange(2, 1, sheetOrders.getLastRow() - 1, 5).getValues();
+      // Columns: ID (A), Customer(B), Date(C), Text(D), JSON Items(E), Obs(F)
+      // Getting 6 columns
+      const dataRange = sheetOrders.getRange(2, 1, sheetOrders.getLastRow() - 1, 6);
+      const orderValues = dataRange.getValues();
+
       orderValues.forEach(row => {
-        // We need to parse the "2x Name" string back to IDs if we want full recovery,
-        // but since we are overwriting the sheet every sync, the "source of truth" 
-        // for complex structures is usually the app state.
-        // To make GET reliable for recovery, we'll store a hidden copy of the 
-        // raw JSON or adjust how we save.
-        // For now, let's store the RAW JSON in a hidden sheet for perfect recovery
-        // and use the visible sheets for "viewing" only.
+        if (row[0]) { // If ID exists
+          let items = [];
+          try {
+            // Try to parse items from column E (index 4)
+            items = row[4] ? JSON.parse(row[4]) : [];
+          } catch (e) {
+            // Fallback: empty if parse fails
+            items = [];
+          }
+
+          orders.push({
+            id: String(row[0]),
+            customerName: String(row[1]),
+            deliveryDate: row[2] instanceof Date ? row[2].toISOString().split('T')[0] : String(row[2]),
+            items: items,
+            observations: String(row[5])
+          });
+        }
       });
     }
 
-    // UPDATED APPROACH: For perfect recovery, we store the full JSON in a hidden sheet 'RawData'
-    // but keep 'Pedidos' and 'Produtos' for the user to see.
-    let sheetRaw = doc.getSheetByName('RawData');
-    if (sheetRaw) {
-      const rawJson = sheetRaw.getRange(1, 1).getValue();
-      return ContentService.createTextOutput(rawJson || JSON.stringify({ products: [], orders: [] }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ products: [], orders: [] }))
+    return ContentService.createTextOutput(JSON.stringify({ products: products, orders: orders }))
       .setMimeType(ContentService.MimeType.JSON);
+
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ 'result': 'error', 'error': error.toString() }))
       .setMimeType(ContentService.MimeType.JSON);

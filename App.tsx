@@ -72,7 +72,7 @@ const App: React.FC = () => {
     if (isLocalEmpty && GOOGLE_SCRIPT_URL) {
       loading.current = true;
       addToast('Carregando dados da Planilha Google...', 'info');
-      fetch(GOOGLE_SCRIPT_URL)
+      fetch(`${GOOGLE_SCRIPT_URL}?t=${new Date().getTime()}`, { cache: 'no-store' })
         .then(res => res.json())
         .then((data: BackupData) => {
           if (data && (data.products || data.orders)) {
