@@ -158,12 +158,12 @@ const App: React.FC = () => {
     }
 
     if (editingProduct) {
-      const updated = products.map(p => p.id === editingProduct.id ? { ...p, name } : p);
+      const updated = products.map(p => p.id === editingProduct.id ? { ...p, name: name.trim() } : p);
       setProducts(updated);
       syncToGoogleSheets(updated, orders);
       addToast('Produto atualizado com sucesso!');
     } else {
-      const newProduct: Product = { id: Date.now().toString(), name };
+      const newProduct: Product = { id: Date.now().toString(), name: name.trim() };
       const updated = [...products, newProduct];
       setProducts(updated);
       syncToGoogleSheets(updated, orders);
