@@ -128,13 +128,13 @@ const App: React.FC = () => {
   // Filtered Data
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const matchesDate = !dateFilter || order.deliveryDate === dateFilter;
+      const matchesDate = !dateFilter || order.deliveryDate <= dateFilter;
       const matchesProduct = !productFilter || order.items.some(item => {
         const prod = products.find(p => p.id === item.productId);
         return prod?.name.toLowerCase().includes(productFilter.toLowerCase());
       });
       return matchesDate && matchesProduct;
-    }).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
+    }).sort((a, b) => new Date(a.deliveryDate + 'T00:00:00').getTime() - new Date(b.deliveryDate + 'T00:00:00').getTime());
   }, [orders, dateFilter, productFilter, products]);
 
   const productTotals = useMemo(() => {
@@ -430,7 +430,7 @@ const App: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-bold text-gray-900">{order.customerName}</h3>
                         <p className="text-sm text-indigo-600 font-medium flex items-center gap-1.5 mt-1">
-                          <CalendarIcon /> {new Date(order.deliveryDate).toLocaleDateString('pt-BR')}
+                          <CalendarIcon /> {new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                       <div className="flex gap-1">
