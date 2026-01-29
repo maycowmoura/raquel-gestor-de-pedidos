@@ -7,7 +7,8 @@ import Toast from './components/Toast';
 
 const STORAGE_KEYS = {
   PRODUCTS: 'ordersflow_products',
-  ORDERS: 'ordersflow_orders'
+  ORDERS: 'ordersflow_orders',
+  ENABLE_LOCAL_STORAGE: 'ordersflow_enable_local_storage'
 };
 
 const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
@@ -18,14 +19,16 @@ interface BackupData {
 }
 
 const App: React.FC = () => {
+  const enableLocalStorage = !!localStorage.getItem(STORAGE_KEYS.ENABLE_LOCAL_STORAGE);
+
   // Initialize state from localStorage
   const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    const saved = enableLocalStorage ? localStorage.getItem(STORAGE_KEYS.PRODUCTS) : null;
     return saved ? (JSON.parse(saved) as Product[]) : [];
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const saved = enableLocalStorage ? localStorage.getItem(STORAGE_KEYS.ORDERS) : null;
     return saved ? (JSON.parse(saved) as Order[]) : [];
   });
 
@@ -58,8 +61,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (loading.current) return;
 
-    const localProductsString = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    const localOrdersString = localStorage.getItem(STORAGE_KEYS.ORDERS);
+    const localProductsString = enableLocalStorage ? localStorage.getItem(STORAGE_KEYS.PRODUCTS) : null;
+    const localOrdersString = enableLocalStorage ? localStorage.getItem(STORAGE_KEYS.ORDERS) : null;
 
     const localProducts = localProductsString ? (JSON.parse(localProductsString) as Product[]) : [];
     const localOrders = localOrdersString ? (JSON.parse(localOrdersString) as Order[]) : [];
