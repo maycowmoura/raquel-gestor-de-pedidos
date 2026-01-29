@@ -12,16 +12,21 @@ const STORAGE_KEYS = {
 
 const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 
+interface BackupData {
+  products: Product[];
+  orders: Order[];
+}
+
 const App: React.FC = () => {
   // Initialize state from localStorage
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? (JSON.parse(saved) as Product[]) : [];
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? (JSON.parse(saved) as Order[]) : [];
   });
 
   const [activeTab, setActiveTab] = useState<Tab>(Tab.Orders);
@@ -56,8 +61,8 @@ const App: React.FC = () => {
     const localProductsString = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     const localOrdersString = localStorage.getItem(STORAGE_KEYS.ORDERS);
 
-    const localProducts = localProductsString ? JSON.parse(localProductsString) : [];
-    const localOrders = localOrdersString ? JSON.parse(localOrdersString) : [];
+    const localProducts = localProductsString ? (JSON.parse(localProductsString) as Product[]) : [];
+    const localOrders = localOrdersString ? (JSON.parse(localOrdersString) as Order[]) : [];
 
     const isLocalEmpty = localProducts.length === 0 && localOrders.length === 0;
 
@@ -66,7 +71,7 @@ const App: React.FC = () => {
       addToast('Carregando dados da Planilha Google...', 'info');
       fetch(GOOGLE_SCRIPT_URL)
         .then(res => res.json())
-        .then(data => {
+        .then((data: BackupData) => {
           if (data && (data.products || data.orders)) {
             if (data.products) setProducts(data.products);
             if (data.orders) setOrders(data.orders);
@@ -135,7 +140,7 @@ const App: React.FC = () => {
       order.items.forEach(item => {
         const prod = products.find(p => p.id === item.productId);
         if (prod) {
-          totals[prod.name] = (totals[prod.name] || 0) + item.quantity;
+          totals[prod.name] = (totals[prod.name] || 0) + Number(item.quantity);
         }
       });
     });
@@ -263,7 +268,7 @@ const App: React.FC = () => {
 
   const handleImportData = () => {
     try {
-      const data = JSON.parse(importText.replace('Backup OrdersFlow:', '').trim());
+      const data = JSON.parse(importText.replace('Backup OrdersFlow:', '').trim()) as BackupData;
       if (data.products && Array.isArray(data.products) && data.orders && Array.isArray(data.orders)) {
         setProducts(data.products);
         setOrders(data.orders);
