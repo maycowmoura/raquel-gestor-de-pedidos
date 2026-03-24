@@ -125,17 +125,26 @@ const App: React.FC = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  // Today's date in YYYY-MM-DD format (local time)
+  const todayStr = new Date().toISOString().split('T')[0];
+
   // Filtered Data
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const matchesDate = !dateFilter || order.deliveryDate <= dateFilter;
+      if (order.deliveryDate < todayStr) return false; // archived orders excluded
+      const matchesDate = !dateFilter || order.deliveryDate === dateFilter;
       const matchesProduct = !productFilter || order.items.some(item => {
         const prod = products.find(p => p.id === item.productId);
         return prod?.name.toLowerCase().includes(productFilter.toLowerCase());
       });
       return matchesDate && matchesProduct;
     }).sort((a, b) => new Date(a.deliveryDate + 'T00:00:00').getTime() - new Date(b.deliveryDate + 'T00:00:00').getTime());
-  }, [orders, dateFilter, productFilter, products]);
+  }, [orders, dateFilter, productFilter, products, todayStr]);
+
+  const filteredArchivedOrders = useMemo(() => {
+    return orders.filter(order => order.deliveryDate < todayStr)
+      .sort((a, b) => new Date(b.deliveryDate + 'T00:00:00').getTime() - new Date(a.deliveryDate + 'T00:00:00').getTime());
+  }, [orders, todayStr]);
 
   const productTotals = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -320,12 +329,80 @@ const App: React.FC = () => {
             >
               Produtos
             </button>
+            <button
+              onClick={() => setActiveTab(Tab.Archived)}
+              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Archived ? 'bg-white shadow text-gray-500' : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Arquivados
+            </button>
           </nav>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto p-4 md:p-8">
-        {activeTab === Tab.Products ? (
+        {activeTab === Tab.Archived ? (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Pedidos Arquivados</h2>
+              <span className="text-sm text-gray-400 font-medium">Entregas anteriores a hoje</span>
+            </div>
+
+            {filteredArchivedOrders.length === 0 ? (
+              <EmptyState message="Nenhum pedido arquivado." />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredArchivedOrders.map(order => (
+                  <div key={order.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col opacity-75 hover:opacity-100 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-700">{order.customerName}</h3>
+                        <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5 mt-1">
+                          <CalendarIcon /> {new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => { setEditingOrder(order); setIsOrderModalOpen(true); }}
+                          className="p-2 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          onClick={() => deleteOrder(order.id)}
+                          className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Produtos</h4>
+                      <ul className="space-y-2">
+                        {order.items.map((item, idx) => {
+                          const prod = products.find(p => p.id === item.productId);
+                          return (
+                            <li key={idx} className="flex justify-between items-center text-sm font-medium text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                              <span>{prod?.name || 'Produto Removido'}</span>
+                              <span className="bg-white px-2 py-0.5 rounded border shadow-sm">{item.quantity}x</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+
+                    {order.observations && (
+                      <div className="mt-4 pt-4 border-t text-sm text-gray-400 italic">
+                        {order.observations}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : activeTab === Tab.Products ? (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800">Catálogo de Produtos</h2>
