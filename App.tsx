@@ -4,6 +4,7 @@ import { Product, Order, OrderItem, Tab, Toast as ToastType, ToastType as TType 
 import { PlusIcon, EditIcon, TrashIcon, SearchIcon, CalendarIcon, ShareIcon, ImportIcon } from './components/Icons';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
+import Resumo from './components/Resumo';
 
 const STORAGE_KEYS = {
   PRODUCTS: 'ordersflow_products',
@@ -314,24 +315,31 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          <nav className="flex bg-gray-100 p-1 rounded-xl">
+          <nav className="flex overflow-x-auto bg-gray-100 p-1 rounded-xl gap-1 md:gap-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             <button
               onClick={() => setActiveTab(Tab.Orders)}
-              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Orders ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+              className={`flex-none md:flex-1 px-4 md:px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Orders ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Pedidos
             </button>
             <button
               onClick={() => setActiveTab(Tab.Products)}
-              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Products ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+              className={`flex-none md:flex-1 px-4 md:px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Products ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Produtos
             </button>
             <button
+              onClick={() => setActiveTab(Tab.Resumo)}
+              className={`flex-none md:flex-1 px-4 md:px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Resumo ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Resumo
+            </button>
+            <button
               onClick={() => setActiveTab(Tab.Archived)}
-              className={`flex-1 px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Archived ? 'bg-white shadow text-gray-500' : 'text-gray-500 hover:text-gray-700'
+              className={`flex-none md:flex-1 px-4 md:px-6 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === Tab.Archived ? 'bg-white shadow text-gray-500' : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Arquivados
@@ -402,6 +410,8 @@ const App: React.FC = () => {
               </div>
             )}
           </div>
+        ) : activeTab === Tab.Resumo ? (
+          <Resumo orders={orders} products={products} />
         ) : activeTab === Tab.Products ? (
           <div className="space-y-6">
             <div className="flex justify-between items-center">

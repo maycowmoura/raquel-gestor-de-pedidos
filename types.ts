@@ -28,5 +28,6 @@ export interface Toast {
 export enum Tab {
   Orders = 'orders',
   Archived = 'archived',
-  Products = 'products'
+  Products = 'products',
+  Resumo = 'resumo'
 }
