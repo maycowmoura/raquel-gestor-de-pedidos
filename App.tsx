@@ -423,7 +423,7 @@ const App: React.FC = () => {
                     </div>
 
                     {(order.observations || order.whatsapp) && (
-                      <div className={`mt-4 pt-4 border-t flex ${order.observations ? 'flex-col items-start gap-3' : 'justify-end'}`}>
+                      <div className="mt-4 pt-4 border-t flex flex-col items-start gap-3">
                         {order.observations && (
                           <div className="text-sm text-gray-400 break-words whitespace-pre-wrap italic w-full">
                             {order.observations}
@@ -434,11 +434,11 @@ const App: React.FC = () => {
                             href={`https://wa.me/${order.whatsapp}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`flex items-center gap-2 p-2 text-green-500 hover:text-green-600 bg-green-50/50 hover:bg-green-100 rounded-lg transition-colors flex-shrink-0 ${order.observations ? 'px-3 text-xs font-bold' : ''}`}
+                            className="flex items-center gap-2 p-2 px-3 text-green-500 hover:text-green-600 bg-green-50/50 hover:bg-green-100 rounded-lg transition-colors flex-shrink-0 text-xs font-bold"
                             title="Conversar no WhatsApp"
                           >
                             <WhatsappIcon />
-                            {order.observations && <span>WhatsApp</span>}
+                            <span>WhatsApp</span>
                           </a>
                         )}
                       </div>
@@ -597,7 +597,7 @@ const App: React.FC = () => {
                     </div>
 
                     {(order.observations || order.whatsapp) && (
-                      <div className={`mt-4 pt-4 border-t flex ${order.observations ? 'flex-col items-start gap-3' : 'justify-end'}`}>
+                      <div className="mt-4 pt-4 border-t flex flex-col items-start gap-3">
                         {order.observations && (
                           <div className="text-sm text-gray-500 break-words whitespace-pre-wrap italic w-full">
                             {order.observations}
@@ -608,11 +608,11 @@ const App: React.FC = () => {
                             href={`https://wa.me/${order.whatsapp}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`flex items-center gap-2 p-2 text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex-shrink-0 ${order.observations ? 'px-3 text-xs font-bold' : ''}`}
+                            className="flex items-center gap-2 p-2 px-3 text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex-shrink-0 text-xs font-bold"
                             title="Conversar no WhatsApp"
                           >
                             <WhatsappIcon />
-                            {order.observations && <span>WhatsApp</span>}
+                            <span>WhatsApp</span>
                           </a>
                         )}
                       </div>
@@ -798,21 +798,46 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-700">Valor Total</label>
-            <input
-              type="tel"
-              autoComplete="off"
-              value={totalValue === 0 ? '' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)}
-              onChange={(e) => {
-                const valueStr = e.target.value.replace(/\D/g, '');
-                if (!valueStr) {
-                  setTotalValue(0);
-                  return;
-                }
-                setTotalValue(Number(valueStr) / 100);
-              }}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-900"
-              placeholder="R$ 0,00"
-            />
+            <div className="relative flex items-center">
+              <span className="absolute left-4 text-gray-500 font-medium">R$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={(() => {
+                  if (totalValue === 0) return '';
+                  const centsStr = Math.round(totalValue * 100).toString();
+                  const padded = centsStr.padStart(3, '0');
+                  const decimals = padded.slice(-2);
+                  const integers = padded.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                  return `${integers},${decimals}`;
+                })()}
+                onChange={(e) => {
+                  const valueStr = e.target.value.replace(/\D/g, '');
+                  if (!valueStr) {
+                    setTotalValue(0);
+                    return;
+                  }
+                  setTotalValue(Number(valueStr) / 100);
+                }}
+                onFocus={(e) => {
+                  const len = e.target.value.length;
+                  e.target.setSelectionRange(len, len);
+                }}
+                onClick={(e) => {
+                  const len = e.currentTarget.value.length;
+                  e.currentTarget.setSelectionRange(len, len);
+                }}
+                onKeyUp={(e) => {
+                  if (e.key !== 'Tab' && e.key !== 'Enter') {
+                    const len = e.currentTarget.value.length;
+                    e.currentTarget.setSelectionRange(len, len);
+                  }
+                }}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-900"
+                placeholder="0,00"
+              />
+            </div>
           </div>
         </div>
 
