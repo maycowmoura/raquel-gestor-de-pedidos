@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Product, Order, OrderItem, Tab, Toast as ToastType, ToastType as TType } from './types';
-import { PlusIcon, EditIcon, TrashIcon, SearchIcon, CalendarIcon, ShareIcon, ImportIcon } from './components/Icons';
+import { PlusIcon, EditIcon, TrashIcon, SearchIcon, CalendarIcon, ShareIcon, ImportIcon, WhatsappIcon } from './components/Icons';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
 import Resumo from './components/Resumo';
@@ -18,6 +18,21 @@ interface BackupData {
   products: Product[];
   orders: Order[];
 }
+
+const sanitizeWhatsapp = (phone: string) => {
+  let num = phone.replace(/\D/g, '');
+  if (!num) return '';
+
+  if (num.startsWith('55') && num.length >= 12) return num;
+
+  if (num.length === 8) num = '55219' + num;
+  else if (num.length === 9) num = '5521' + num;
+  else if (num.length === 10) num = '55' + num.substring(0, 2) + '9' + num.substring(2);
+  else if (num.length === 11) num = '55' + num;
+  else if (num.length > 11 && !num.startsWith('55')) num = '55' + num;
+
+  return num;
+};
 
 const App: React.FC = () => {
   const enableLocalStorage = !!localStorage.getItem(STORAGE_KEYS.ENABLE_LOCAL_STORAGE);
@@ -365,9 +380,16 @@ const App: React.FC = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-gray-700">{order.customerName}</h3>
-                        <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5 mt-1">
-                          <CalendarIcon /> {new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('pt-BR')}
-                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                            <CalendarIcon /> {new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                          </p>
+                          {order.totalValue ? (
+                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                       <div className="flex gap-1">
                         <button
@@ -400,9 +422,25 @@ const App: React.FC = () => {
                       </ul>
                     </div>
 
-                    {order.observations && (
-                      <div className="mt-4 pt-4 border-t text-sm text-gray-400 italic">
-                        {order.observations}
+                    {(order.observations || order.whatsapp) && (
+                      <div className={`mt-4 pt-4 border-t flex ${order.observations ? 'flex-col items-start gap-3' : 'justify-end'}`}>
+                        {order.observations && (
+                          <div className="text-sm text-gray-400 break-words whitespace-pre-wrap italic w-full">
+                            {order.observations}
+                          </div>
+                        )}
+                        {order.whatsapp && (
+                          <a
+                            href={`https://wa.me/${order.whatsapp}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex items-center gap-2 p-2 text-green-500 hover:text-green-600 bg-green-50/50 hover:bg-green-100 rounded-lg transition-colors flex-shrink-0 ${order.observations ? 'px-3 text-xs font-bold' : ''}`}
+                            title="Conversar no WhatsApp"
+                          >
+                            <WhatsappIcon />
+                            {order.observations && <span>WhatsApp</span>}
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>
@@ -516,9 +554,16 @@ const App: React.FC = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900">{order.customerName}</h3>
-                        <p className="text-sm text-indigo-600 font-medium flex items-center gap-1.5 mt-1">
-                          <CalendarIcon /> {new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('pt-BR')}
-                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <p className="text-sm text-indigo-600 font-medium flex items-center gap-1.5">
+                            <CalendarIcon /> {new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                          </p>
+                          {order.totalValue ? (
+                            <span className="text-xs font-bold text-gray-600 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100 shadow-sm">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                       <div className="flex gap-1">
                         <button
@@ -551,9 +596,25 @@ const App: React.FC = () => {
                       </ul>
                     </div>
 
-                    {order.observations && (
-                      <div className="mt-4 pt-4 border-t text-sm text-gray-500 italic">
-                        {order.observations}
+                    {(order.observations || order.whatsapp) && (
+                      <div className={`mt-4 pt-4 border-t flex ${order.observations ? 'flex-col items-start gap-3' : 'justify-end'}`}>
+                        {order.observations && (
+                          <div className="text-sm text-gray-500 break-words whitespace-pre-wrap italic w-full">
+                            {order.observations}
+                          </div>
+                        )}
+                        {order.whatsapp && (
+                          <a
+                            href={`https://wa.me/${order.whatsapp}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex items-center gap-2 p-2 text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex-shrink-0 ${order.observations ? 'px-3 text-xs font-bold' : ''}`}
+                            title="Conversar no WhatsApp"
+                          >
+                            <WhatsappIcon />
+                            {order.observations && <span>WhatsApp</span>}
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>
@@ -681,6 +742,8 @@ interface OrderFormProps {
 const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, onCancel }) => {
   const [customerName, setCustomerName] = useState(initialData?.customerName || '');
   const [deliveryDate, setDeliveryDate] = useState(initialData?.deliveryDate || '');
+  const [totalValue, setTotalValue] = useState(initialData?.totalValue || 0);
+  const [whatsapp, setWhatsapp] = useState(initialData?.whatsapp || '');
   const [observations, setObservations] = useState(initialData?.observations || '');
   const [items, setItems] = useState<OrderItem[]>(initialData?.items || []);
 
@@ -722,14 +785,35 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
           />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-gray-700">Data de Entrega</label>
-          <input
-            type="date"
-            value={deliveryDate}
-            onChange={(e) => setDeliveryDate(e.target.value)}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-gray-700">Data de Entrega</label>
+            <input
+              type="date"
+              value={deliveryDate}
+              onChange={(e) => setDeliveryDate(e.target.value)}
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-gray-700">Valor Total</label>
+            <input
+              type="tel"
+              autoComplete="off"
+              value={totalValue === 0 ? '' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)}
+              onChange={(e) => {
+                const valueStr = e.target.value.replace(/\D/g, '');
+                if (!valueStr) {
+                  setTotalValue(0);
+                  return;
+                }
+                setTotalValue(Number(valueStr) / 100);
+              }}
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-gray-900"
+              placeholder="R$ 0,00"
+            />
+          </div>
         </div>
 
         {/* Product Picker */}
@@ -784,6 +868,17 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
         </div>
 
         <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-gray-700">WhatsApp (opcional)</label>
+          <input
+            type="tel"
+            value={whatsapp.replace(/^(5521|55)/, '')}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+            placeholder="Ex: 21 91234-5678"
+          />
+        </div>
+
+        <div className="space-y-1.5">
           <label className="text-sm font-semibold text-gray-700">Observações</label>
           <textarea
             value={observations}
@@ -797,7 +892,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ products, initialData, onSave, on
       <div className="flex gap-3 pt-2">
         <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-colors">Cancelar</button>
         <button
-          onClick={() => onSave({ customerName, deliveryDate, items, observations })}
+          onClick={() => onSave({ customerName, deliveryDate, totalValue, items, whatsapp: sanitizeWhatsapp(whatsapp), observations })}
           className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition-colors"
         >
           Salvar Pedido

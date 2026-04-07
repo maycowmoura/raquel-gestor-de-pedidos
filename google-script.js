@@ -30,7 +30,7 @@ function doPost(e) {
     sheetOrders.clear();
 
     if (data.orders && data.orders.length > 0) {
-      const orderHeaders = ['ID Pedido', 'Cliente', 'Data de Entrega', 'Produtos', 'Produtos JSON', 'Observações'];
+      const orderHeaders = ['ID Pedido', 'Cliente', 'Data de Entrega', 'Produtos', 'Produtos JSON', 'Valor', 'Whatsapp', 'Observações'];
       const orderRows = data.orders.map(o => {
         // Human readable items
         const itemsReadable = o.items.map(item => {
@@ -41,7 +41,7 @@ function doPost(e) {
         // Raw JSON items
         const itemsJson = JSON.stringify(o.items);
 
-        return [o.id, o.customerName, o.deliveryDate, itemsReadable, itemsJson, o.observations || ''];
+        return [o.id, o.customerName, o.deliveryDate, itemsReadable, itemsJson, o.totalValue || 0, o.whatsapp || '', o.observations || ''];
       });
 
       sheetOrders.getRange(1, 1, 1, orderHeaders.length).setValues([orderHeaders]).setFontWeight('bold');
@@ -87,9 +87,9 @@ function doGet(e) {
 
     // Read Orders
     if (sheetOrders && sheetOrders.getLastRow() > 1) {
-      // Columns: ID (A), Customer(B), Date(C), Text(D), JSON Items(E), Obs(F)
-      // Getting 6 columns
-      const dataRange = sheetOrders.getRange(2, 1, sheetOrders.getLastRow() - 1, 6);
+      // Columns: ID (A), Customer(B), Date(C), Text(D), JSON Items(E), Valor(F), WhatsApp(G), Obs(H)
+      // Getting 8 columns
+      const dataRange = sheetOrders.getRange(2, 1, sheetOrders.getLastRow() - 1, 8);
       const orderValues = dataRange.getValues();
 
       orderValues.forEach(row => {
@@ -108,7 +108,9 @@ function doGet(e) {
             customerName: String(row[1]),
             deliveryDate: row[2] instanceof Date ? row[2].toISOString().split('T')[0] : String(row[2]),
             items: items,
-            observations: String(row[5])
+            totalValue: Number(row[5]) || 0,
+            whatsapp: String(row[6] || ''),
+            observations: String(row[7] || '')
           });
         }
       });

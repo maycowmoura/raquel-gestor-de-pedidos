@@ -14,6 +14,8 @@ export interface Order {
   customerName: string;
   items: OrderItem[];
   deliveryDate: string;
+  whatsapp?: string;
+  totalValue?: number;
   observations: string;
 }
 
